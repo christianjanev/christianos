@@ -47,14 +47,47 @@ print:
 	jmp read
 	
 new_line:
+	cmp dh, 24
+	je scroll_down
 	mov ah, 0x2 ; set cursor pos
 	mov dl, 0
 	add dh, 1 ; add 1 to cursor row
 	int 0x10
 	jmp read
 
+scroll_up: ; doesn't work!!!!
+	mov ah, 0x07 ; scroll up
+	mov al, 1 ; 1 line
+	mov ch, 0 ; top corner
+	mov cl, 0
+	mov dh, 24 ; bottom corner
+	mov dl, 80
+	int 0x10
+	mov ah, 0x02 ; set cursor in bottom left
+	mov dh, 24
+	mov dl, 0
+	int 0x10
+	jmp read
+
+scroll_down:
+	mov ah, 0x06 ; scroll down
+	mov al, 1 ; 1 line
+	mov ch, 0 ; top corner
+	mov cl, 0
+	mov dh, 24 ; bottom corner
+	mov dl, 80 
+	int 0x10
+	mov ah, 0x2 ; set cursor in top left (doesn't work)
+	mov dh, 0
+	mov dl, 0
+	int 0x10
+	jmp read
+
 backspace:
 	mov ah, 0x3 ; get cursor pos
+	int 0x10
+	or dh, dl ; check that both dh and dl are zero (ZF will be set if so)
+	jz scroll_up
 	int 0x10
 	mov ah, 0x2 ; set cursor pos
 	sub dl, 1 ; subtract 1 from cursor column
